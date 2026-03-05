@@ -29,17 +29,24 @@ The same implementation works across both platforms since they both use the Mode
 - Support for both plain text and HTML email content
 - Comprehensive error handling and logging
 
+## Build
+
+Before configuring the MCP server, you must clone the repository and build it:
+
+```bash
+git clone https://github.com/hssafdar/protonmail-mcp.git
+cd protonmail-mcp
+npm install
+npm run build
+```
+
+This compiles the TypeScript source in `src/` to `build/index.js`, which is the runtime entrypoint invoked by MCP clients.
+
 ## Configuration
 
-The server requires the following environment variables to be set in the MCP settings files for both Claude Desktop and Cline:
+The server is launched by MCP clients using `node build/index.js`. You must provide the **absolute path** to `build/index.js` in your configuration. Both Claude Desktop and Cline use the same environment variables for credentials.
 
-### Claude Desktop Configuration
-Located at: `/Users/your-username/Library/Application Support/Claude/claude_desktop_config.json`
-
-### Cline VSCode Extension Configuration
-Located at: `/Users/your-username/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
-
-Both configuration files require the following environment variables:
+### Environment Variables
 
 - `PROTONMAIL_USERNAME`: Your Protonmail email address
 - `PROTONMAIL_PASSWORD`: Your Protonmail SMTP password (not your regular login password)
@@ -49,6 +56,56 @@ Both configuration files require the following environment variables:
 - `DEBUG`: Enable debug logging (set to "true" to see detailed logs, "false" to hide them)
 
 For detailed information about Protonmail's SMTP service, including how to get your SMTP password, please refer to the [official Protonmail SMTP documentation](https://proton.me/support/smtp-submission).
+
+### Claude Desktop Configuration
+
+Located at: `/Users/your-username/Library/Application Support/Claude/claude_desktop_config.json`
+
+Add the following entry under the `mcpServers` key, replacing `/absolute/path/to/protonmail-mcp` with the actual path where you cloned the repository:
+
+```json
+{
+  "mcpServers": {
+    "protonmail-mcp": {
+      "command": "node",
+      "args": ["/absolute/path/to/protonmail-mcp/build/index.js"],
+      "env": {
+        "PROTONMAIL_USERNAME": "your-email@proton.me",
+        "PROTONMAIL_PASSWORD": "your-smtp-password",
+        "PROTONMAIL_HOST": "smtp.protonmail.ch",
+        "PROTONMAIL_PORT": "587",
+        "PROTONMAIL_SECURE": "false",
+        "DEBUG": "false"
+      }
+    }
+  }
+}
+```
+
+### Cline VSCode Extension Configuration
+
+Located at: `/Users/your-username/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+
+Add the following entry under the `mcpServers` key, replacing `/absolute/path/to/protonmail-mcp` with the actual path where you cloned the repository:
+
+```json
+{
+  "mcpServers": {
+    "protonmail-mcp": {
+      "command": "node",
+      "args": ["/absolute/path/to/protonmail-mcp/build/index.js"],
+      "env": {
+        "PROTONMAIL_USERNAME": "your-email@proton.me",
+        "PROTONMAIL_PASSWORD": "your-smtp-password",
+        "PROTONMAIL_HOST": "smtp.protonmail.ch",
+        "PROTONMAIL_PORT": "587",
+        "PROTONMAIL_SECURE": "false",
+        "DEBUG": "false"
+      }
+    }
+  }
+}
+```
 
 ## Usage
 
@@ -98,41 +155,35 @@ If you encounter issues with the MCP server, check the following:
 
 ## Development
 
-To build the project:
+To modify the server, edit the TypeScript files in the `src/` directory and rebuild:
 
 ```bash
-cd protonmail-mcp
-npm install
 npm run build
 ```
 
-To modify the server, edit the files in the `src` directory and rebuild the project.
+The compiled output is placed in `build/`. The runtime entrypoint is `build/index.js`.
+
+To watch for changes during development:
+
+```bash
+npm run watch
+```
+
+To inspect the MCP server interactively:
+
+```bash
+npm run inspector
+```
 
 ## Installation
 
-This MCP server can be installed in both Claude Desktop and Cline VSCode extension. Here's how to add it to your environment:
-
-### Manual Installation
-
-1. Clone this repository to your local machine:
-   ```bash
-   git clone https://github.com/your-username/protonmail-mcp.git
-   cd protonmail-mcp
-   ```
-
-2. Install dependencies and build the project:
-   ```bash
-   npm install
-   npm run build
-   ```
-
-3. Add the server configuration to your MCP settings files (see Configuration section above)
+This MCP server can be installed in both Claude Desktop and Cline VSCode extension. See the [Build](#build) section above for how to compile the server, then add the configuration from the [Configuration](#configuration) section.
 
 ### Using Cline to Install from GitHub
 
 Cline can automatically clone and build MCP servers from GitHub repositories. To use this feature:
 
-1. Provide Cline with the GitHub repository URL
+1. Provide Cline with the GitHub repository URL: `https://github.com/hssafdar/protonmail-mcp`
 2. Let Cline clone and build the server
 3. Provide any necessary configuration information (like SMTP credentials)
 
